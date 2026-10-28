@@ -1,0 +1,12 @@
+const fs=require('fs'),vm=require('vm'),assert=require('assert');
+const source=fs.readFileSync('static/app.js','utf8');
+const distance=source.match(/function distance\(a,b\)\{[^\n]+/)[0];
+const area=source.match(/function area\(points\)\{[^\n]+/)[0];
+const context={state:{scale:.1}};vm.createContext(context);vm.runInContext(distance+'\n'+area,context);
+assert(Math.abs(context.distance({x:0,y:0},{x:300,y:400})-50)<.01);
+const rectangle=[{x:0,y:0},{x:300,y:0},{x:300,y:400},{x:0,y:400}];
+assert(Math.abs(context.area(rectangle)-1200)<.01);
+assert(Math.abs(context.area([...rectangle].reverse())-1200)<.01);
+context.state.scale*=.3048;
+assert(Math.abs(context.distance({x:0,y:0},{x:300,y:400})-15.24)<.01);
+console.log('Distance, area, winding order, and unit conversion passed (0.01 unit tolerance).');
